@@ -26,14 +26,15 @@ def find_index(folders, str):
         
 def ls(str):
     print(str)
-
+    
 def sum_of_folder(folder, folders, files):
+    print("here")
     sum = 0
     for sth in folder:
         if (not is_dir(sth.getName())):
             sum += int(sth.getSize())
         else:
-            index_of_folder = folders.index(sth.getName().split(' ')[1])
+            index_of_folder = find_index(folders, sth.getName().split(' ')[1])
             sum += sum_of_folder(files[index_of_folder], folders, files)
             
     return sum
