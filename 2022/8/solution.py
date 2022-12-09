@@ -22,11 +22,6 @@ def build_tree_map(lines):
         i += 1
     return map
 
-def is_edge_tree(map, row, col):
-    if (row == 0) or (row == len(map) - 1) or (col == 0) or (col == len(map[0]) - 1):
-        return True
-    return False
-
 def is_visible(visibility):
     if visibility["left"] or visibility["right"] or visibility["top"] or visibility["bottom"]:
         return True
@@ -34,7 +29,6 @@ def is_visible(visibility):
     
 
 def visible_from(map, row, col):
-    # print_tree_map(map, row, col)
     visibility = {
         "top": True,
         "bottom": True,
@@ -43,42 +37,70 @@ def visible_from(map, row, col):
     }
     
     for i in range(len(map)):
-        for j in range(len(map[0])):
-            if map[row][col] <= map[i][j] and (visibility['left'] or visibility["right"]) and i == row:
-                if col > j:
-                    # print('this tree', map[row][col], 'is not visible from', 'left', map[i][j])
+        if map[row][col] <= map[row][i] and (visibility['left'] or visibility["right"]):
+                if col > i:
                     visibility["left"] = False
-                elif col < j:
-                    # print('this tree', map[row][col], 'is not visible from', 'right', map[i][j])
+                elif col < i:
                     visibility["right"] = False
-
-            if map[row][col] <= map[j][i] and (visibility['top'] or visibility["bottom"]) and i == col:
-                if row > j:
-                    # print('this tree', map[row][col], 'is not visible from', 'top', map[j][i])
+        
+        if map[row][col] <= map[i][col] and (visibility['top'] or visibility["bottom"]):
+                if row > i:
                     visibility["top"] = False
-                elif row < j:
-                    # print('this tree', map[row][col], 'is not visible from', 'bottom', map[j][i])
+                elif row < i:
                     visibility["bottom"] = False
-     
-    # print(visibility)
-    # print()
-    return visibility             
+                    
+    return visibility 
+
+def calculate_view_score(map, row, col):
+    score = {
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+    }
+    
+    # left
+    for i in range(col - 1, -1, -1):
+        score["left"] += 1
+        if map[row][i] >= map[row][col]:
+            break
+    
+    # right
+    for i in range(col + 1, len(map)):
+        score["right"] += 1
+        if map[row][i] >= map[row][col]:
+            break
+        
+    # top
+    for i in range(row - 1, -1, -1):
+        score["top"] += 1
+        if map[i][col] >= map[row][col]:
+            break
+        
+    # bottom
+    for i in range(row + 1, len(map[0])):
+        score["bottom"] += 1
+        if map[i][col] >= map[row][col]:
+            break
+            
+    return (score["top"] * score["bottom"] * score["left"] * score["right"])
 
 input = open(sys.argv[1], 'r')
 lines = input.readlines()
 
 trees = build_tree_map(lines)
 
+view_scores = []
 visible_trees = 0
+
 for i in range(len(trees)):
     for j in range(len(trees[0])):
-        if is_edge_tree(trees, i, j):
+        tree_visibility = visible_from(trees, i, j)
+        if is_visible(tree_visibility):
             visible_trees += 1
-        else:
-            tree_visibility = visible_from(trees, i, j)
-            if is_visible(tree_visibility):
-                visible_trees += 1
+        view_scores.append(calculate_view_score(trees, i, j))
             
 print(visible_trees)
+print(max(view_scores))
 
 input.close()
